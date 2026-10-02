@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[назва компанії] — Ремонт та покупка техніки</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #080a10;
+            color: #ffffff;
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button, input, textarea, select {
+            font: inherit;
+        }
+
+        /* BACKGROUND EFFECTS */
+        .background {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: -10;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(0, 170, 255, 0.12), transparent 35%),
+                radial-gradient(circle at 80% 70%, rgba(125, 60, 255, 0.12), transparent 35%),
+                #080a10;
+        }
+
+        .orb {
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.25;
+            animation: floatOrb 12s infinite ease-in-out;
+        }
+
+        .orb.one { background: #008cff; top: -150px; left: -100px; }
+        .orb.two { background: #743cff; right: -150px; top: 40%; animation-delay: -4s; }
+
+        @keyframes floatOrb {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(40px, -30px) scale(1.1); }
+        }
+
+        /* DUAL CURSOR TRAIL */
+        #cursorRing {
+            position: fixed;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 2px solid rgba(0, 190, 255, 0.7);
+            pointer-events: none;
+            z-index: 99990;
+            transform: translate(-50%, -50%);
+            transition: width 0.2s, height 0.2s;
+            box-shadow: 0 0 12px rgba(0, 190, 255, 0.3);
+        }
+
+        #cursorDot {
+            position: fixed;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #00e1ff;
+            pointer-events: none;
+            z-index: 99995;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px #00e1ff;
+        }
+
+        /* CAMERA CONTAINER & BLUR ZONE */
+        .camera-wrapper {
+            position: fixed;
+            top: 10px;
+            right: 15px;
+            width: 170px;
+            height: 170px;
+            z-index: 2000;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .blur-zone {
+            position: absolute;
+            inset: -10px;
+            background: rgba(8, 10, 16, 0.35);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 50%;
+            mask-image: radial-gradient(circle, black 50%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle, black 50%, transparent 100%);
+            z-index: -1;
+        }
+
+        /* DAHUA EYEBALL DOME CAMERA (NO TEXT, MATTE GRAY BASE) */
+        .dahua-camera {
+            position: relative;
+            width: 110px;
+            height: 110px;
+            transform-origin: center center;
+            will-change: transform;
+        }
+
+        /* Matte Dark Gray Base Ring */
+        .camera-base-ring {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 96px;
+            height: 28px;
+            background: linear-gradient(180deg, #2f343e 0%, #1f2229 100%);
+            border-radius: 14px 14px 6px 6px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+            z-index: 3;
+        }
+
+        /* Dark Outer Shroud / Arm */
+        .camera-shroud {
+            position: absolute;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 86px;
+            height: 72px;
+            background: linear-gradient(180deg, #1b1e24 0%, #111317 100%);
+            border-radius: 10px 10px 36px 36px;
+            box-shadow: inset 0 2px 5px rgba(255,255,255,0.05), 0 8px 20px rgba(0,0,0,0.7);
+            z-index: 2;
+        }
+
+        /* Inner Rotating Eyeball Sphere */
+        .camera-ball {
+            position: absolute;
+            top: 26px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 72px;
+            height: 62px;
+            background: radial-gradient(circle at 35% 35%, #2a2e38 0%, #121418 80%);
+            border-radius: 36px 36px 28px 28px;
+            box-shadow: inset 0 3px 8px rgba(255,255,255,0.08);
+            z-index: 1;
+        }
+
+        /* Flat Front Lens Faceplate */
+        .camera-face {
+            position: absolute;
+            bottom: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 52px;
+            height: 40px;
+            background: #090a0d;
+            border-radius: 12px;
+            border: 1px solid #1a1d24;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.9);
+        }
+
+        /* Glass Central Lens */
+        .camera-lens {
+            position: relative;
+            width: 24px;
+            height: 24px;
+            background: radial-gradient(circle, #020305 0%, #0c1017 100%);
+            border-radius: 50%;
+            border: 2px solid #1c212b;
+            box-shadow: 0 0 6px rgba(0, 170, 255, 0.2);
+            overflow: hidden;
+        }
+
+        .camera-lens::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 4px;
+            width: 7px;
+            height: 7px;
+            background: rgba(255, 255, 255, 0.65);
+            border-radius: 50%;
+            filter: blur(0.5px);
+        }
+
+        .rec-led {
+            position: absolute;
+            bottom: 4px;
+            right: 7px;
+            width: 4px;
+            height: 4px;
+            background: #ff2a2a;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #ff2a2a;
+            animation: ledBlink 1.2s infinite alternate;
+        }
+
+        @keyframes ledBlink {
+            0% { opacity: 0.2; }
+            100% { opacity: 1; }
+        }
+
+        /* HEADER */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 16px 5%;
+            background: rgba(8, 10, 16, 0.8);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        nav {
+            max-width: 1400px;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .logo-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, #00aaff, #704cff);
+        }
+
+        .logo span { color: #00b7ff; }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            margin-right: 170px; /* Зсув ліворуч від камери */
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 24px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #bfc5d2;
+            transition: 0.25s;
+            font-size: 14px;
+        }
+
+        .nav-links a:hover { color: #00b7ff; }
+
+        .header-button {
+            padding: 9px 18px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 183, 255, 0.4);
+            background: rgba(0, 183, 255, 0.12);
+            color: #fff;
+            transition: 0.3s;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .header-button:hover {
+            background: #00aaff;
+            box-shadow: 0 0 20px rgba(0, 170, 255, 0.4);
+        }
+
+        /* HERO SECTION */
+        .hero {
+            min-height: 100vh;
+            max-width: 1400px;
+            margin: auto;
+            padding: 140px 5% 60px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 14px;
+            border: 1px solid rgba(0, 183, 255, 0.3);
+            background: rgba(0, 183, 255, 0.08);
+            border-radius: 100px;
+            color: #65d4ff;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #00d084;
+            box-shadow: 0 0 8px #00d084;
+        }
+
+        .hero h1 {
+            font-size: clamp(38px, 5vw, 68px);
+            line-height: 1.05;
+            letter-spacing: -2px;
+            margin-bottom: 20px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #00b7ff, #7b5cff, #00d9ff);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        .hero p {
+            color: #a9afbd;
+            max-width: 540px;
+            font-size: 17px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 14px;
+        }
+
+        .btn {
+            border: none;
+            padding: 14px 26px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: 700;
+        }
+
+        .btn-primary {
+            color: white;
+            background: linear-gradient(135deg, #008cff, #684cff);
+            box-shadow: 0 8px 25px rgba(0, 140, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(0, 140, 255, 0.5);
+        }
+
+        .btn-secondary {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); }
+
+        /* SERVICES SECTION */
+        section { padding: 90px 5%; }
+        .section-container { max-width: 1400px; margin: auto; }
+        .section-heading { text-align: center; margin-bottom: 50px; }
+        .section-heading span { color: #00b7ff; text-transform: uppercase; font-size: 12px; letter-spacing: 2px; font-weight: 700; }
+        .section-heading h2 { font-size: clamp(28px, 3.5vw, 44px); margin: 10px 0; }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .service-card {
+            padding: 28px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            transition: 0.3s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 183, 255, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .service-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            font-size: 20px;
+            margin-bottom: 18px;
+            background: rgba(0, 183, 255, 0.1);
+        }
+
+        .service-card h3 { margin-bottom: 10px; font-size: 19px; }
+        .service-card p { color: #8e96a6; line-height: 1.5; font-size: 14px; }
+
+        /* FOOTER */
+        footer {
+            text-align: center;
+            padding: 40px 5%;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            color: #6c7585;
+            font-size: 14px;
+        }
+
+        @media (max-width: 900px) {
+            .hero { grid-template-columns: 1fr; text-align: center; }
+            .hero p { margin: 0 auto 30px; }
+            .hero-buttons { justify-content: center; }
+            .services-grid { grid-template-columns: 1fr; }
+            .nav-right { margin-right: 110px; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="background">
+        <div class="orb one"></div>
+        <div class="orb two"></div>
+    </div>
+
+    <!-- DUAL CURSOR -->
+    <div id="cursorRing"></div>
+    <div id="cursorDot"></div>
+
+    <!-- CAMERA TOP RIGHT WITH BLUR -->
+    <div class="camera-wrapper">
+        <div class="blur-zone"></div>
+        <div class="dahua-camera" id="dahuaCam">
+            <div class="camera-base-ring"></div>
+            <div class="camera-shroud"></div>
+            <div class="camera-ball">
+                <div class="camera-face">
+                    <div class="camera-lens"></div>
+                    <div class="rec-led"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header>
+        <nav>
+            <div class="logo">
+                <div class="logo-icon">🔧</div>
+                <div>[назва компанії]</div>
+            </div>
+            <div class="nav-right">
+                <ul class="nav-links">
+                    <li><a href="#services">Послуги</a></li>
+                    <li><a href="#about">Про нас</a></li>
+                    <li><a href="#contacts">Контакти</a></li>
+                </ul>
+                <button class="header-button" onclick="alert('Дякуємо! Наш менеджер зателефонує вам.')">Замовити консультацію</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="badge">
+                <span class="badge-dot"></span>
+                Професійний сервісний центр
+            </div>
+            <h1>Сервіс та ремонт техніки <span class="gradient-text">[назва компанії]</span></h1>
+            <p>Якісний ремонт ноутбуків, смартфонів та ПК. Офіційна гарантія, безкоштовна діагностика та оригінальні запчастини.</p>
+            <div class="hero-buttons">
+                <button class="btn btn-primary" onclick="alert('Форму відкрито!')">Подати заявку</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('services').scrollIntoView();">Дізнатися більше</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section id="services">
+        <div class="section-container">
+            <div class="section-heading">
+                <span>Наші послуги</span>
+                <h2>Що пропонує [назва компанії]</h2>
+            </div>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">💻</div>
+                    <h3>Ремонт ноутбуків</h3>
+                    <p>Заміна матриць, клавіатур, чистка від пилу та заміна термопасти в [назва компанії].</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">📱</div>
+                    <h3>Ремонт смартфонів</h3>
+                    <p>Заміна екранів, акумуляторів та роз'ємів живлення з гарантією.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">🖥️</div>
+                    <h3>Складання та апгрейд ПК</h3>
+                    <p>Індивідуальна підбірка комплектуючих під ваш бюджет та завдання.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>© 2026 [назва компанії]. Усі права захищено.</p>
+    </footer>
+
+    <script>
+        // --- DUAL CURSOR TRAIL MATH ---
+        const cursorRing = document.getElementById('cursorRing');
+        const cursorDot = document.getElementById('cursorDot');
+
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+
+        let ringX = mouseX, ringY = mouseY;
+        let dotX = mouseX, dotY = mouseY;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        function animateCursor() {
+            // Ring moves faster (0.25)
+            ringX += (mouseX - ringX) * 0.25;
+            ringY += (mouseY - ringY) * 0.25;
+
+            // Dot follows with more delay (0.12)
+            dotX += (mouseX - dotX) * 0.12;
+            dotY += (mouseY - dotY) * 0.12;
+
+            cursorRing.style.left = `${ringX}px`;
+            cursorRing.style.top = `${ringY}px`;
+
+            cursorDot.style.left = `${dotX}px`;
+            cursorDot.style.top = `${dotY}px`;
+
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        // --- 320 DEGREE CAMERA ROTATION MATH ---
+        const camera = document.getElementById('dahuaCam');
+        let currentAngle = 0;
+
+        function animateCamera() {
+            if (camera) {
+                const rect = camera.getBoundingClientRect();
+                const camCenterX = rect.left + rect.width / 2;
+                const camCenterY = rect.top + rect.height / 2;
+
+                const dx = mouseX - camCenterX;
+                const dy = mouseY - camCenterY;
+
+                // Calculate angle in degrees
+                let targetAngle = Math.atan2(dy, dx) * (180 / Math.PI) - 90;
+
+                // Normalize angle
+                while (targetAngle < -180) targetAngle += 360;
+                while (targetAngle > 180) targetAngle -= 360;
+
+                // Clamp to ~320 degrees (-160° to +160°)
+                const clampedAngle = Math.max(-160, Math.min(160, targetAngle));
+
+                // Smooth interpolation (lerp)
+                currentAngle += (clampedAngle - currentAngle) * 0.08;
+
+                camera.style.transform = `rotate(${currentAngle}deg)`;
+            }
+            requestAnimationFrame(animateCamera);
+        }
+        animateCamera();
+    </script>
+</body>
+</html>
